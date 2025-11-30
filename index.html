@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESL Grammar Practice</title>
+    <!-- 引入題庫資料 -->
+    <script src="grammar_data.js"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #f1c40f;
+            --accent: #e74c3c;
+            --success: #2ecc71;
+            --bg: #f5f6fa;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- 頂部控制區 --- */
+        .header-controls {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        select {
+            font-size: 1.1em;
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            background: white;
+            font-weight: bold;
+            color: var(--text);
+        }
+
+        /* --- 導覽分頁 --- */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: #dfe6e9;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #636e72;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* --- 遊戲主畫面 --- */
+        .game-area {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            min-height: 300px;
+            position: relative;
+        }
+
+        .question-text {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: var(--text);
+            min-height: 1.2em;
+        }
+
+        /* 模式 A: Choice (按鈕選項) */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 3px solid #eee;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #555;
+        }
+
+        .option-btn:hover { border-color: var(--primary); background: #ebf5fb; }
+        
+        .option-btn.correct { background: #d4edda; border-color: var(--success); color: var(--success); }
+        .option-btn.wrong { background: #f8d7da; border-color: var(--accent); color: var(--accent); }
+
+        /* 模式 B: Sorting (分類) */
+        .sorting-item {
+            font-size: 3em;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 20px 0 40px 0;
+            animation: popIn 0.5s;
+        }
+
+        .buckets-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .bucket-btn {
+            background: #fdfdfd;
+            border: 2px dashed #b2bec3;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            color: #636e72;
+            font-weight: bold;
+        }
+        
+        .bucket-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .bucket-btn.correct-bucket { background: var(--success); color: white; border-style: solid; }
+        .bucket-btn.wrong-bucket { background: var(--accent); color: white; border-style: solid; }
+
+        /* --- 通用回饋 --- */
+        .feedback-msg {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            height: 1.5em;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            margin-top: 20px;
+            cursor: pointer;
+            display: none;
+            box-shadow: 0 4px 0 #2980b9;
+        }
+
+        .next-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .progress-indicator {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-controls">
+        <h2 style="margin:0; color:var(--primary);">Grammar Practice</h2>
+        <select id="unit-selector" onchange="loadUnit(this.value)">
+            <!-- JS 會自動填入選項 -->
+        </select>
+    </div>
+
+    <div id="tabs-container" class="tabs">
+        <!-- JS 會自動生成分頁按鈕 -->
+    </div>
+
+    <div class="game-area">
+        <div id="progress" class="progress-indicator">1 / 10</div>
+        
+        <!-- 題目顯示區 -->
+        <div id="question-display" class="question-text">Loading...</div>
+        
+        <!-- 遊戲互動區 (會根據模式改變) -->
+        <div id="interaction-area"></div>
+
+        <!-- 回饋區 -->
+        <div id="feedback" class="feedback-msg"></div>
+        <button id="btn-next" class="next-btn" onclick="nextQuestion()">Next ➡</button>
+    </div>
+
+    <script>
+        // ==========================================
+        // 核心引擎 (Engine)
+        // ==========================================
+        
+        let currentUnitKey = "";
+        let currentSectionIndex = 0;
+        let currentQuestionIndex = 0;
+        let currentData = null; // 當前正在玩的題庫
+
+        // 初始化
+        window.onload = function() {
+            // 檢查題庫是否載入
+            if (typeof grammarDatabase === 'undefined') {
+                alert("Error: grammar_data.js not loaded!");
+                return;
+            }
+
+            const selector = document.getElementById('unit-selector');
+            // 根據 Data 生成選單
+            for (let key in grammarDatabase) {
+                let opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = grammarDatabase[key].title;
+                selector.appendChild(opt);
+            }
+            // 預設載入第一課
+            loadUnit("unit1");
+        };
+
+        function loadUnit(unitKey) {
+            currentUnitKey = unitKey;
+            const unitData = grammarDatabase[unitKey];
+            const tabsContainer = document.getElementById('tabs-container');
+            tabsContainer.innerHTML = "";
+
+            // 生成 Tabs
+            unitData.sections.forEach((sec, index) => {
+                let btn = document.createElement('button');
+                btn.className = "tab-btn";
+                btn.innerText = sec.title;
+                btn.onclick = () => loadSection(index);
+                if (index === 0) btn.classList.add('active');
+                tabsContainer.appendChild(btn);
+            });
+
+            loadSection(0);
+        }
+
+        function loadSection(index) {
+            currentSectionIndex = index;
+            currentQuestionIndex = 0;
+            currentData = grammarDatabase[currentUnitKey].sections[index];
+
+            // 更新 UI 狀態
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            // 清空舊狀態
+            document.getElementById('feedback').innerText = "";
+            document.getElementById('feedback').style.color = "inherit";
+            document.getElementById('btn-next').style.display = "none";
+            const interactionArea = document.getElementById('interaction-area');
+            interactionArea.innerHTML = "";
+
+            // 檢查是否結束
+            if (currentQuestionIndex >= currentData.questions.length) {
+                finishSection();
+                return;
+            }
+
+            const qData = currentData.questions[currentQuestionIndex];
+            
+            // 更新進度與標題
+            document.getElementById('progress').innerText = `${currentQuestionIndex + 1} / ${currentData.questions.length}`;
+            
+            // 根據題型渲染
+            if (currentData.type === 'choice') {
+                renderChoiceGame(qData, interactionArea);
+            } else if (currentData.type === 'sorting') {
+                renderSortingGame(qData, interactionArea);
+            }
+        }
+
+        // --- 模式 A: 選擇題 (Choice) ---
+        function renderChoiceGame(qData, container) {
+            document.getElementById('question-display').innerHTML = qData.q.replace("___", "<span style='border-bottom:3px solid #3498db; padding:0 10px; color:#3498db;'>?</span>");
+            
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+            
+            qData.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(btn, opt, qData.a);
+                grid.appendChild(btn);
+            });
+            container.appendChild(grid);
+        }
+
+        // --- 模式 B: 分類題 (Sorting) ---
+        function renderSortingGame(qData, container) {
+            document.getElementById('question-display').innerText = currentData.instructions;
+            
+            // 顯示要分類的字 (大字)
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'sorting-item';
+            itemDiv.innerText = qData.q;
+            container.appendChild(itemDiv);
+
+            // 顯示籃子
+            const bucketContainer = document.createElement('div');
+            bucketContainer.className = 'buckets-container';
+            
+            currentData.buckets.forEach(bucketName => {
+                const btn = document.createElement('button');
+                btn.className = 'bucket-btn';
+                btn.innerText = bucketName;
+                btn.onclick = () => checkAnswer(btn, bucketName, qData.a);
+                bucketContainer.appendChild(btn);
+            });
+            container.appendChild(bucketContainer);
+        }
+
+        // --- 通用檢查邏輯 ---
+        function checkAnswer(btn, userAns, correctAns) {
+            const feedback = document.getElementById('feedback');
+            
+            // 鎖定所有按鈕
+            const allBtns = document.querySelectorAll('button');
+            // 注意：這裡只鎖互動區的按鈕，保留 Next 按鈕
+            document.querySelectorAll('#interaction-area button').forEach(b => b.disabled = true);
+
+            if (userAns === correctAns) {
+                // 答對
+                if (currentData.type === 'sorting') btn.classList.add('correct-bucket');
+                else btn.classList.add('correct');
+                
+                feedback.innerText = "Correct! Great Job! 🎉";
+                feedback.style.color = "var(--success)";
+                speak(userAns);
+            } else {
+                // 答錯
+                if (currentData.type === 'sorting') btn.classList.add('wrong-bucket');
+                else btn.classList.add('wrong');
+                
+                feedback.innerText = `Oops! The answer is "${correctAns}"`;
+                feedback.style.color = "var(--accent)";
+                speak("Try again");
+            }
+            
+            document.getElementById('btn-next').style.display = "inline-block";
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+
+        function finishSection() {
+            document.getElementById('question-display').innerText = "All Done! 🎉";
+            document.getElementById('interaction-area').innerHTML = `
+                <div style="margin-top:20px; color:#555;">
+                    You've completed this section.<br>
+                    Select another tab or unit to continue.
+                </div>
+            `;
+            document.getElementById('progress').innerText = "";
+            speak("Excellent work!");
+        }
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            let utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            window.speechSynthesis.speak(utter);
+        }
+
+    </script>
+</body>
+</html>
