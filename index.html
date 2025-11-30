@@ -1,44 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ESL Grammar Practice</title>
-    
-    <!-- 1. 先初始化資料庫 -->
+
+    <!-- ========================================== -->
+    <!-- 1. 資料庫初始化與載入 -->
+    <!-- ========================================== -->
     <script>
-        window.grammarDatabase = {}; // 建立一個空的資料庫
+        // 建立一個空的資料庫，讓後面的檔案填入資料
+        window.grammarDatabase = {}; 
     </script>
 
-    <!-- 2. 再載入各個單元的資料檔 (以後有新單元就加在這裡) -->
+    <!-- 這裡載入你的單元檔 (確認檔案有上傳到 GitHub) -->
     <script src="unit1.js"></script>
     <script src="unit6.js"></script>
     
-    <!-- CSS 樣式保持不變... -->
+    <!-- 未來有新單元，請解開下面的註解或新增一行 -->
+    <!-- <script src="unit2.js"></script> -->
+    <!-- <script src="unit3.js"></script> -->
+    <!-- <script src="unit4.js"></script> -->
+    <!-- <script src="unit5.js"></script> -->
+    <!-- <script src="unit7.js"></script> -->
+
     <style>
-        /* ... 這裡保留原本的 CSS ... */
-        :root { --primary: #3498db; --secondary: #f1c40f; --accent: #e74c3c; --success: #2ecc71; --bg: #f5f6fa; --text: #2c3e50; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .header-controls { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        select { font-size: 1.1em; padding: 8px; border-radius: 8px; border: 2px solid var(--primary); background: white; font-weight: bold; color: var(--text); }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-        .tab-btn { padding: 8px 16px; background: #dfe6e9; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; color: #636e72; transition: 0.3s; }
-        .tab-btn.active { background: var(--primary); color: white; transform: scale(1.05); }
-        .game-area { width: 100%; max-width: 600px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); text-align: center; min-height: 300px; position: relative; }
-        .question-text { font-size: 2em; font-weight: bold; margin-bottom: 30px; color: var(--text); min-height: 1.2em; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .option-btn { background: white; border: 3px solid #eee; padding: 20px; border-radius: 15px; font-size: 1.2em; font-weight: bold; cursor: pointer; transition: 0.2s; color: #555; }
+        :root {
+            --primary: #3498db;
+            --secondary: #f1c40f;
+            --accent: #e74c3c;
+            --success: #2ecc71;
+            --bg: #f5f6fa;
+            --text: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- 頂部控制區 --- */
+        .header-controls {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 { margin: 0; color: var(--primary); font-size: 1.5em; }
+
+        select {
+            font-size: 1em;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid var(--primary);
+            background: white;
+            font-weight: bold;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        /* --- 導覽分頁 --- */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: #dfe6e9;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #636e72;
+            transition: 0.3s;
+            font-size: 0.95em;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.4);
+        }
+
+        /* --- 遊戲主畫面 --- */
+        .game-area {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            min-height: 300px;
+            position: relative;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-text {
+            font-size: 2em;
+            font-weight: 800;
+            margin-bottom: 30px;
+            color: var(--text);
+            min-height: 1.2em;
+            line-height: 1.4;
+        }
+
+        /* 模式 A: Choice (按鈕選項) */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        /* 如果選項太長，自動變單欄 */
+        @media (max-width: 400px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .option-btn {
+            background: white;
+            border: 3px solid #eee;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #555;
+            user-select: none;
+        }
+
         .option-btn:hover { border-color: var(--primary); background: #ebf5fb; }
-        .option-btn.correct { background: #d4edda; border-color: var(--success); color: var(--success); }
-        .option-btn.wrong { background: #f8d7da; border-color: var(--accent); color: var(--accent); }
-        .sorting-item { font-size: 3em; font-weight: 800; color: var(--primary); margin: 20px 0 40px 0; animation: popIn 0.5s; }
-        .buckets-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .bucket-btn { background: #fdfdfd; border: 2px dashed #b2bec3; border-radius: 12px; padding: 15px; font-size: 1.1em; cursor: pointer; color: #636e72; font-weight: bold; }
+        
+        .option-btn.correct { background: #d4edda !important; border-color: var(--success) !important; color: var(--success) !important; }
+        .option-btn.wrong { background: #f8d7da !important; border-color: var(--accent) !important; color: var(--accent) !important; }
+
+        /* 模式 B: Sorting (分類) */
+        .sorting-item {
+            font-size: 3em;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 20px 0 40px 0;
+            animation: popIn 0.5s;
+        }
+
+        .buckets-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .bucket-btn {
+            background: #fdfdfd;
+            border: 2px dashed #b2bec3;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            color: #636e72;
+            font-weight: bold;
+        }
+        
         .bucket-btn:hover { border-color: var(--primary); color: var(--primary); }
         .bucket-btn.correct-bucket { background: var(--success); color: white; border-style: solid; }
         .bucket-btn.wrong-bucket { background: var(--accent); color: white; border-style: solid; }
-        .feedback-msg { margin-top: 20px; font-size: 1.2em; font-weight: bold; height: 1.5em; }
-        .next-btn { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 1.2em; margin-top: 20px; cursor: pointer; display: none; box-shadow: 0 4px 0 #2980b9; }
+
+        /* --- 通用回饋 --- */
+        .feedback-msg {
+            margin-top: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            height: 1.5em;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            margin-top: 20px;
+            cursor: pointer;
+            display: none; /* 答對後顯示 */
+            box-shadow: 0 4px 0 #2980b9;
+        }
+
         .next-btn:active { transform: translateY(4px); box-shadow: none; }
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .progress-indicator { position: absolute; top: 15px; right: 20px; font-size: 0.9em; color: #bdc3c7; }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .progress-indicator {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 0.9em;
+            color: #bdc3c7;
+        }
+
+        .loading-msg {
+            color: #7f8c8d;
+            margin-top: 50px;
+        }
+
     </style>
 </head>
+<body>
+
+    <div class="header-controls">
+        <h2>Grammar Practice</h2>
+        <select id="unit-selector" onchange="loadUnit(this.value)">
+            <option value="" disabled selected>Select a Unit...</option>
+            <!-- JS 會自動填入選項 -->
+        </select>
+    </div>
+
+    <div id="tabs-container" class="tabs">
+        <!-- JS 會自動生成分頁按鈕 -->
+    </div>
+
+    <div class="game-area">
+        <div id="progress" class="progress-indicator"></div>
+        
+        <!-- 題目顯示區 -->
+        <div id="question-display" class="question-text">
+            <div class="loading-msg">Please select a unit to start.</div>
+        </div>
+        
+        <!-- 遊戲互動區 (會根據模式改變) -->
+        <div id="interaction-area"></div>
+
+        <!-- 回饋區 -->
+        <div id="feedback" class="feedback-msg"></div>
+        <button id="btn-next" class="next-btn" onclick="nextQuestion()">Next Question ➡</button>
+    </div>
+
+    <script>
+        // ==========================================
+        // 核心引擎 (Game Engine)
+        // ==========================================
+        
+        let currentUnitKey = "";
+        let currentSectionIndex = 0;
+        let currentQuestionIndex = 0;
+        let currentData = null; // 當前正在玩的 Section 資料
+
+        // 初始化：當網頁載入完成時
+        window.onload = function() {
+            // 1. 檢查資料庫是否有東西
+            const db = window.grammarDatabase;
+            const selector = document.getElementById('unit-selector');
+
+            if (!db || Object.keys(db).length === 0) {
+                alert("No unit data loaded! Please check if unit1.js, unit6.js are in the same folder.");
+                return;
+            }
+
+            // 2. 根據 Data 生成選單
+            let firstKey = null;
+            // 排序鍵值 (讓 Unit 1, Unit 2... 照順序排)
+            const sortedKeys = Object.keys(db).sort();
+
+            sortedKeys.forEach(key => {
+                if (!firstKey) firstKey = key;
+                let opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = db[key].title;
+                selector.appendChild(opt);
+            });
+
+            // 3. 預設載入第一個單元 (通常是 Unit 1)
+            if (firstKey) {
+                selector.value = firstKey;
+                loadUnit(firstKey);
+            }
+        };
+
+        function loadUnit(unitKey) {
+            currentUnitKey = unitKey;
+            const unitData = window.grammarDatabase[unitKey];
+            const tabsContainer = document.getElementById('tabs-container');
+            tabsContainer.innerHTML = "";
+
+            // 生成 Tabs (分頁)
+            unitData.sections.forEach((sec, index) => {
+                let btn = document.createElement('button');
+                btn.className = "tab-btn";
+                btn.innerText = sec.title;
+                btn.onclick = () => loadSection(index);
+                // 預設第一個 Tab 啟用
+                if (index === 0) btn.classList.add('active');
+                tabsContainer.appendChild(btn);
+            });
+
+            loadSection(0);
+        }
+
+        function loadSection(index) {
+            currentSectionIndex = index;
+            currentQuestionIndex = 0;
+            currentData = window.grammarDatabase[currentUnitKey].sections[index];
+
+            // 更新 UI 狀態 (Tab Highlight)
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            // 清空舊狀態
+            document.getElementById('feedback').innerText = "";
+            document.getElementById('feedback').style.color = "inherit";
+            document.getElementById('btn-next').style.display = "none";
+            const interactionArea = document.getElementById('interaction-area');
+            interactionArea.innerHTML = "";
+
+            // 檢查是否結束
+            if (currentQuestionIndex >= currentData.questions.length) {
+                finishSection();
+                return;
+            }
+
+            const qData = currentData.questions[currentQuestionIndex];
+            
+            // 更新進度
+            document.getElementById('progress').innerText = `${currentQuestionIndex + 1} / ${currentData.questions.length}`;
+            
+            // 根據題型渲染
+            if (currentData.type === 'choice') {
+                renderChoiceGame(qData, interactionArea);
+            } else if (currentData.type === 'sorting') {
+                renderSortingGame(qData, interactionArea);
+            }
+        }
+
+        // --- 模式 A: 選擇題 (Choice) ---
+        function renderChoiceGame(qData, container) {
+            // 處理題目文字：把 ___ 換成藍色問號，並支援 HTML (如 <br>)
+            let displayHtml = qData.q.replace(/___/g, "<span style='border-bottom:3px solid #3498db; padding:0 5px; color:#3498db;'>?</span>");
+            document.getElementById('question-display').innerHTML = displayHtml;
+            
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+            
+            qData.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(btn, opt, qData.a);
+                grid.appendChild(btn);
+            });
+            container.appendChild(grid);
+        }
+
+        // --- 模式 B: 分類題 (Sorting) ---
+        function renderSortingGame(qData, container) {
+            document.getElementById('question-display').innerText = currentData.instructions;
+            
+            // 顯示要分類的字 (大字)
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'sorting-item';
+            itemDiv.innerText = qData.q;
+            container.appendChild(itemDiv);
+
+            // 顯示籃子
+            const bucketContainer = document.createElement('div');
+            bucketContainer.className = 'buckets-container';
+            
+            currentData.buckets.forEach(bucketName => {
+                const btn = document.createElement('button');
+                btn.className = 'bucket-btn';
+                btn.innerText = bucketName;
+                btn.onclick = () => checkAnswer(btn, bucketName, qData.a);
+                bucketContainer.appendChild(btn);
+            });
+            container.appendChild(bucketContainer);
+        }
+
+        // --- 通用檢查邏輯 ---
+        function checkAnswer(btn, userAns, correctAns) {
+            const feedback = document.getElementById('feedback');
+            
+            // 鎖定所有按鈕，避免重複點擊
+            const allBtns = document.querySelectorAll('#interaction-area button');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (userAns === correctAns) {
+                // 答對
+                if (currentData.type === 'sorting') btn.classList.add('correct-bucket');
+                else btn.classList.add('correct');
+                
+                feedback.innerText = "Correct! Great Job! 🎉";
+                feedback.style.color = "var(--success)";
+                speak(userAns);
+            } else {
+                // 答錯
+                if (currentData.type === 'sorting') btn.classList.add('wrong-bucket');
+                else btn.classList.add('wrong');
+                
+                // 顯示正確答案提示
+                // 如果是選擇題，把正確的按鈕標成綠色
+                if (currentData.type === 'choice') {
+                    allBtns.forEach(b => {
+                        if (b.innerText === correctAns) b.classList.add('correct');
+                    });
+                }
+
+                feedback.innerText = `Oops! The answer is "${correctAns}"`;
+                feedback.style.color = "var(--accent)";
+                speak("Try again");
+            }
+            
+            // 顯示下一題按鈕
+            document.getElementById('btn-next').style.display = "inline-block";
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+
+        function finishSection() {
+            document.getElementById('question-display').innerText = "All Done! 🎉";
+            document.getElementById('interaction-area').innerHTML = `
+                <div style="margin-top:20px; color:#555; font-size: 1.1em;">
+                    You've completed this section.<br>
+                    <span style="font-size:0.8em; color:#999;">Select another tab or unit to continue.</span>
+                </div>
+            `;
+            document.getElementById('progress').innerText = "";
+            speak("Excellent work!");
+        }
+
+        function speak(text) {
+            // 簡單的語音合成
+            window.speechSynthesis.cancel();
+            let utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            window.speechSynthesis.speak(utter);
+        }
+
+    </script>
+</body>
+</html>
